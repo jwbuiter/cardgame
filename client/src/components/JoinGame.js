@@ -6,10 +6,14 @@ class JoinGame extends Component {
 
     this.state = {
       games: [],
+      selectedGame: null,
       username: "",
-      gameId: "",
       gamePassword: ""
     };
+  }
+
+  async componentDidMount() {
+    this.setState({ games: await this.props.api.getGames() });
   }
 
   handleFormChange = event => {
@@ -22,14 +26,13 @@ class JoinGame extends Component {
     });
   };
 
-  handleFormSubmit = async event => {
+  join = event => {
     event.preventDefault();
 
-    const { gameName, isProtected, gamePassword, username } = this.state;
-    const options = { gameName, isProtected, gamePassword, username };
+    const { gamePassword, username, selectedGame } = this.state;
+    const joinOptions = { gameId: selectedGame, gamePassword, username };
 
-    const response = await this.props.api.joinGame(options);
-    console.log(response);
+    this.props.api.joinGame(joinOptions);
   };
 
   render() {
@@ -46,31 +49,31 @@ class JoinGame extends Component {
             <input type="text" name="username" />
           </label>
         </p>
-        <p>
-          <label>
-            Password:
-            <input
-              type="text"
-              name="gamePassword"
-              disabled={!this.state.isProtected}
-            />
-          </label>
-        </p>
-        <p>
-          <label>
-            Player name:
-            <input type="text" name="username" />
-          </label>
-        </p>
-        <p>
-          <label>
-            Game name:
-            <input type="text" name="gameName" />
-          </label>
-        </p>
-        <p>
-          <input type="submit" value="Start" />
-        </p>
+        <ul>
+          {this.state.games.map(game => (
+            <li
+              onClick={() => this.setState({ selectedGame: game.id })}
+              key={game.id}
+            >
+              {game.name}
+              {game.id === this.state.selectedGame && (
+                <>
+                  {game.isProtected && (
+                    <label>
+                      Password:
+                      <input
+                        type="text"
+                        name="gamePassword"
+                        visible={game.isProtected}
+                      />
+                    </label>
+                  )}
+                  <button onClick={this.join}>Join</button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
       </form>
     );
   }

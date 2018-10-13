@@ -1,7 +1,6 @@
 import React from "react";
 
 const MessageList = props => {
-  console.log(props);
   return (
     <ul className="messageList">
       {props.messages.map(message => (

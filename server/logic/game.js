@@ -7,24 +7,26 @@ function makeGame(socket, options, respond) {
     name: options.gameName,
     isProtected: options.isProtected,
     id: uuid(),
-    creator: null
+    players: [],
+    started: false,
+    creatorId: null
   };
-  const gamePassword = options.gamePassword;
+  const players = game.players;
+  const sockets = {};
 
-  const players = [];
-  const ready = {};
-  let started = false;
+  const gamePassword = options.gamePassword;
 
   let gameState = {};
 
   console.log(
-    `Game created: Game "${game.name}" created by "${options.username}"`
+    "Game created:",
+    `Game "${game.name}" created by "${options.username}"`
   );
   join(socket, { username: options.username, gamePassword }, respond);
-  game.creator = players[0];
+  game.creatorId = players[0].id;
 
   return {
-    game,
+    ...game,
     canJoin,
     join
   };
@@ -38,59 +40,65 @@ function makeGame(socket, options, respond) {
       return;
     }
 
-    const user = { username: options.username, id: uuid() };
+    const user = { username: options.username, id: uuid(), ready: false };
+
+    players.forEach(player => sockets[player.id].emit("playerJoined", user));
+
+    players.push(user);
+    sockets[user.id] = socket;
+
+    console.log(
+      "Player joined:",
+      `Player "${user.username}" joined game "${game.name}"`
+    );
 
     respond({
       success: true,
       game,
+      players,
       user
     });
 
     socket.on("chatMessage", (message, respond) => {
       message.id = uuid();
       players.forEach(player => {
-        player.socket.emit("chatMessage", message);
+        sockets[player.id].emit("chatMessage", message);
       });
     });
 
     socket.on("startGame", (message, respond) => {
-      if (user !== game.creator) return;
+      if (user.id !== game.creatorId) return;
       if (players.length < rules.minPlayers) return;
-      if (!players.map(player => ready[player]).every(val => val)) return;
+      if (!players.every(player => player.ready)) return;
 
       startGame();
     });
 
     socket.on("ready", (message, respond) => {
-      ready[user.id] = message.value;
+      user.ready = message.value;
 
       players.forEach(player => {
-        player.socket.emit("ready", message);
+        sockets[player.id].emit("ready", message);
       });
     });
 
     socket.on("gameAction", (message, respond) => {
-      if (!started) return;
+      if (!game.started) return;
 
       gameState = stateMachine.nextState(gameState, message.action);
     });
-
-    players.push({ socket, user });
-    console.log(
-      `Player joined: Player "${options.username}" joined game "${game.name}"`
-    );
   }
 
   function startGame() {
-    started = true;
+    game.started = true;
     gameState = stateMachine.initialState;
-    console.log(`Game Started: "${gameName}"`);
+    console.log("Game Started:", `"${gameName}"`);
 
     players.forEach(player => {});
   }
 
   function canJoin() {
-    return !started && players.length < rules.maxPlayers;
+    return !game.started && players.length < rules.maxPlayers;
   }
 }
 

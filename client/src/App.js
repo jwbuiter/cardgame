@@ -11,15 +11,15 @@ class App extends Component {
     return (
       <div className="App">
         {this.props.game ? (
-          <>
+          <div className="mainScreen">
             <Chat api={this.props.api} />
             <PlayArea api={this.props.api} />
-          </>
+          </div>
         ) : (
-          <>
+          <div className="joinScreen">
             <CreateGame api={this.props.api} />
             <JoinGame api={this.props.api} />
-          </>
+          </div>
         )}
       </div>
     );
@@ -28,7 +28,7 @@ class App extends Component {
 
 function mapStateToProps(state) {
   return {
-    game: state.game.properties
+    game: state.game.id
   };
 }
 

@@ -1,4 +1,9 @@
-import { JOINED_GAME, USER_READY, LEFT_GAME } from "../constants/actionTypes";
+import {
+  JOINED_GAME,
+  PLAYER_READY,
+  PLAYER_JOINED,
+  LEFT_GAME
+} from "../constants/actionTypes";
 
 export function joinedGame(message) {
   return {
@@ -9,7 +14,7 @@ export function joinedGame(message) {
 
 export function userReady(message) {
   return {
-    type: USER_READY,
+    type: PLAYER_READY,
     payload: message
   };
 }
@@ -17,5 +22,12 @@ export function userReady(message) {
 export function leftGame() {
   return {
     type: LEFT_GAME
+  };
+}
+
+export function playerJoined(message) {
+  return {
+    type: PLAYER_JOINED,
+    payload: message
   };
 }

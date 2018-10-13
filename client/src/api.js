@@ -1,17 +1,21 @@
 import socketIOClient from "socket.io-client";
+import axios from "axios";
 
 import { receiveMessage } from "./actions/chatActions";
-import { joinedGame, userReady } from "./actions/gameActions";
+import { joinedGame, playerJoined, userReady } from "./actions/gameActions";
 
 const APIendPoint = "http://127.0.0.1:5000";
 
 function api(store) {
   const socket = socketIOClient(APIendPoint);
 
+  async function getGames() {
+    return (await axios.get(APIendPoint + "/games")).data;
+  }
+
   function createGame(options) {
     socket.emit("createGame", options, response => {
       if (response.success) {
-        console.log(response);
         store.dispatch(joinedGame(response));
       }
     });
@@ -26,7 +30,7 @@ function api(store) {
   }
 
   function ready(value) {
-    const message = { value, user: store.getState().game.user };
+    const message = { value, player: store.getState().game.user };
     socket.emit("ready", message, response => {});
   }
 
@@ -43,7 +47,11 @@ function api(store) {
     store.dispatch(userReady(message));
   });
 
-  return { createGame, joinGame, sendMessage, ready };
+  socket.on("playerJoined", message => {
+    store.dispatch(playerJoined(message));
+  });
+
+  return { getGames, createGame, joinGame, sendMessage, ready };
 }
 
 export default api;

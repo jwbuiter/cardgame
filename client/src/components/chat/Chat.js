@@ -16,8 +16,7 @@ class Chat extends Component {
 
     this.contentRef.current.value = "";
 
-    const message = { content, username: this.props.username };
-    this.props.api.sendMessage(message);
+    this.props.api.sendMessage(content);
   };
 
   render() {
@@ -33,8 +32,7 @@ class Chat extends Component {
 
 const mapStateToProps = function(state) {
   return {
-    messages: state.chat.messages,
-    username: state.game.username
+    messages: state.chat.messages
   };
 };
 

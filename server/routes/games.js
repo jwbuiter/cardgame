@@ -51,7 +51,7 @@ function gamesHandler(io) {
         return;
       }
       const game = makeGame(socket, options, respond);
-      games[game.gameId] = game;
+      games[game.id] = game;
     });
 
     socket.on("joinGame", (options, respond) => {
@@ -61,6 +61,7 @@ function gamesHandler(io) {
           success: false,
           reason: validation.error
         });
+        return;
       }
 
       const game = games[options.gameId];
@@ -69,6 +70,7 @@ function gamesHandler(io) {
           success: false,
           reason: "Game does not exist."
         });
+        return;
       }
 
       if (!game.canJoin()) {
@@ -76,8 +78,8 @@ function gamesHandler(io) {
           success: false,
           reason: "Game cannot be joined."
         });
+        return;
       }
-
       game.join(socket, options, respond);
     });
   });
@@ -86,11 +88,11 @@ function gamesHandler(io) {
 gamesRoute.get("/", (req, res) => {
   res.send(
     Object.keys(games).map(key => {
-      const { name, isProtected, creator, id } = games[key].gameOptions;
+      const { name, isProtected, creatorId, id } = games[key];
       return {
         name,
         isProtected,
-        creator,
+        creatorId,
         id
       };
     })
