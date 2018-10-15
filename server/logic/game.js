@@ -8,8 +8,7 @@ function makeGame(socket, options, respond) {
     isProtected: options.isProtected,
     id: uuid(),
     players: [],
-    started: false,
-    creatorId: null
+    started: false
   };
   const players = game.players;
   const sockets = {};
@@ -23,7 +22,6 @@ function makeGame(socket, options, respond) {
     `Game "${game.name}" created by "${options.username}"`
   );
   join(socket, { username: options.username, gamePassword }, respond);
-  game.creatorId = players[0].id;
 
   return {
     ...game,
@@ -42,7 +40,7 @@ function makeGame(socket, options, respond) {
 
     const user = { username: options.username, id: uuid(), ready: false };
 
-    players.forEach(player => sockets[player.id].emit("playerJoined", user));
+    broadCast("playerJoined", user);
 
     players.push(user);
     sockets[user.id] = socket;
@@ -59,33 +57,46 @@ function makeGame(socket, options, respond) {
       user
     });
 
-    socket.on("chatMessage", (message, respond) => {
+    socket.on("chatMessage", message => {
       message.id = uuid();
-      players.forEach(player => {
-        sockets[player.id].emit("chatMessage", message);
-      });
+
+      broadCast("chatMessage", message);
     });
 
-    socket.on("startGame", (message, respond) => {
-      if (user.id !== game.creatorId) return;
+    socket.on("startGame", () => {
+      if (user.id !== players[0].id) return;
       if (players.length < rules.minPlayers) return;
       if (!players.every(player => player.ready)) return;
 
       startGame();
     });
 
-    socket.on("ready", (message, respond) => {
+    socket.on("ready", message => {
       user.ready = message.value;
 
-      players.forEach(player => {
-        sockets[player.id].emit("ready", message);
-      });
+      broadCast("ready", message);
     });
 
-    socket.on("gameAction", (message, respond) => {
+    socket.on("gameAction", message => {
       if (!game.started) return;
 
       gameState = stateMachine.nextState(gameState, message.action);
+    });
+
+    socket.on("leave", () => {
+      leave(user.id);
+
+      broadCast("playerLeft", user.id);
+    });
+  }
+
+  function leave(id) {
+    sockets[id].close();
+  }
+
+  function broadCast(type, message) {
+    players.forEach(player => {
+      sockets[player.id].emit(type, message);
     });
   }
 

@@ -51,7 +51,16 @@ function api(store) {
     store.dispatch(playerJoined(message));
   });
 
-  return { getGames, createGame, joinGame, sendMessage, ready };
+  return {
+    getGames,
+    createGame,
+    joinGame,
+    leaveGame,
+    startGame,
+    kickPlayer,
+    sendMessage,
+    ready
+  };
 }
 
 export default api;

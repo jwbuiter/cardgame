@@ -2,6 +2,7 @@ const actionTypes = [
   "JOINED_GAME",
   "PLAYER_READY",
   "PLAYER_JOINED",
+  "PLAYER_LEFT",
   "GAME_STARTED",
   "LEFT_GAME",
   "RECEIVED_MESSAGE"

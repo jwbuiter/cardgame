@@ -1,21 +1,59 @@
-import React from "react";
+import React, { Component } from "react";
+import { connect } from "react-redux";
 
-const ReadyScreen = props => {
-  return (
-    <ul>
-      {Object.values(props.players).map(player => (
-        <li key={player.id}>
-          {player.username}
-          <input
-            type="checkbox"
-            checked={player.ready}
-            onChange={props.ready}
-            disabled={player.id !== props.user.id}
-          />
-        </li>
-      ))}
-    </ul>
-  );
-};
+class ReadyScreen extends Component {
+  ready = event => {
+    this.props.api.ready(event.target.checked);
+  };
 
-export default ReadyScreen;
+  start = () => {
+    this.props.api.startGame();
+  };
+
+  leave = () => {
+    this.props.api.leaveGame();
+  };
+
+  kick = id => {
+    this.props.api.kickPlayer(id);
+  };
+
+  render() {
+    const ownerID = this.props.players[0].id;
+    return (
+      <>
+        <ul>
+          {this.props.players.map(player => (
+            <li key={player.id}>
+              <input
+                type="checkbox"
+                checked={player.ready}
+                onChange={this.ready}
+                disabled={player.id !== this.props.user.id}
+              />
+              {player.username}
+              {this.props.user.id === ownerID &&
+                player.id !== ownerID && (
+                  <button onClick={() => this.kick(player.id)}>Kick</button>
+                )}
+            </li>
+          ))}
+        </ul>
+        {ownerID === this.props.user.id && (
+          <button onClick={this.start}>Start</button>
+        )}
+        <button>Leave</button>
+      </>
+    );
+  }
+}
+
+function mapStateToProps(state) {
+  return {
+    started: state.game.started,
+    players: state.game.players,
+    user: state.game.user
+  };
+}
+
+export default connect(mapStateToProps)(ReadyScreen);
