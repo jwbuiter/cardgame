@@ -1,8 +1,8 @@
-import { RECEIVED_MESSAGE } from "../constants/actionTypes";
+import { CHAT_MESSAGE } from "../constants/actionTypes";
 
-export function receiveMessage(message) {
+export function receivedMessage(message) {
   return {
-    type: RECEIVED_MESSAGE,
+    type: CHAT_MESSAGE,
     payload: message
   };
 }

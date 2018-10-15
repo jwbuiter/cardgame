@@ -1,26 +1,26 @@
 const uuid = require("uuid");
-const rules = require("./rules/toepen/rules");
-const stateMachine = require("./rules/toepen/stateMachine");
+const rules = require("./rules/testGame/rules");
+const stateMachine = require("./rules/testGame/stateMachine");
 
 function makeGame(socket, options, respond) {
   const game = {
     name: options.gameName,
     isProtected: options.isProtected,
-    id: uuid(),
-    players: [],
-    started: false
+    id: uuid()
   };
-  const players = game.players;
+  let state = {
+    started: false,
+    players: []
+  };
+
   const sockets = {};
-
   const gamePassword = options.gamePassword;
-
-  let gameState = {};
 
   console.log(
     "Game created:",
     `Game "${game.name}" created by "${options.username}"`
   );
+
   join(socket, { username: options.username, gamePassword }, respond);
 
   return {
@@ -63,6 +63,10 @@ function makeGame(socket, options, respond) {
       broadCast("chatMessage", message);
     });
 
+    socket.on("action", action => {
+      broadCast("state", state);
+    });
+
     socket.on("startGame", () => {
       if (user.id !== players[0].id) return;
       if (players.length < rules.minPlayers) return;
@@ -70,28 +74,6 @@ function makeGame(socket, options, respond) {
 
       startGame();
     });
-
-    socket.on("ready", message => {
-      user.ready = message.value;
-
-      broadCast("ready", message);
-    });
-
-    socket.on("gameAction", message => {
-      if (!game.started) return;
-
-      gameState = stateMachine.nextState(gameState, message.action);
-    });
-
-    socket.on("leave", () => {
-      leave(user.id);
-
-      broadCast("playerLeft", user.id);
-    });
-  }
-
-  function leave(id) {
-    sockets[id].close();
   }
 
   function broadCast(type, message) {
@@ -101,7 +83,7 @@ function makeGame(socket, options, respond) {
   }
 
   function startGame() {
-    game.started = true;
+    state.started = true;
     gameState = stateMachine.initialState;
     console.log("Game Started:", `"${gameName}"`);
 
@@ -109,7 +91,7 @@ function makeGame(socket, options, respond) {
   }
 
   function canJoin() {
-    return !game.started && players.length < rules.maxPlayers;
+    return !state.started && state.players.length < rules.maxPlayers;
   }
 }
 

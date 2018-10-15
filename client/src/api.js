@@ -1,8 +1,15 @@
 import socketIOClient from "socket.io-client";
 import axios from "axios";
 
-import { receiveMessage } from "./actions/chatActions";
-import { joinedGame, playerJoined, userReady } from "./actions/gameActions";
+import { receivedMessage } from "./actions/chatActions";
+import {
+  joinedGame,
+  leaveGame,
+  leftGame,
+  startGame,
+  playerReady,
+  gameState
+} from "./actions/gameActions";
 
 const APIendPoint = "http://127.0.0.1:5000";
 
@@ -29,37 +36,49 @@ function api(store) {
     });
   }
 
-  function ready(value) {
-    const message = { value, player: store.getState().game.user };
-    socket.emit("ready", message, response => {});
+  function leave() {
+    const self = store.getState().game.user.id;
+    socket.emit("action", leaveGame(self));
   }
 
-  function sendMessage(content) {
+  function ready(value) {
+    socket.emit("action", playerReady(value));
+  }
+
+  function start() {
+    socket.emit("action", startGame());
+  }
+
+  function kick(player) {
+    socket.emit("action", leaveGame(player));
+  }
+
+  function sendChatMessage(content) {
     const message = { sender: store.getState().game.user, content };
-    socket.emit("chatMessage", message, response => {});
+    socket.emit("chatMessage", message);
   }
 
   socket.on("chatMessage", message => {
-    store.dispatch(receiveMessage(message));
+    store.dispatch(receivedMessage(message));
   });
 
-  socket.on("ready", message => {
-    store.dispatch(userReady(message));
+  socket.on("state", state => {
+    store.dispatch(gameState(state));
   });
 
-  socket.on("playerJoined", message => {
-    store.dispatch(playerJoined(message));
+  store.on("kick", () => {
+    store.dispatch(leftGame());
   });
 
   return {
     getGames,
     createGame,
     joinGame,
-    leaveGame,
-    startGame,
-    kickPlayer,
-    sendMessage,
-    ready
+    leave,
+    start,
+    kick,
+    ready,
+    sendChatMessage
   };
 }
 

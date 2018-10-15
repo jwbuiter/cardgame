@@ -1,19 +1,5 @@
-const actionTypes = [
-  "JOINED_GAME",
-  "PLAYER_READY",
-  "PLAYER_JOINED",
-  "PLAYER_LEFT",
-  "GAME_STARTED",
-  "LEFT_GAME",
-  "RECEIVED_MESSAGE"
-];
+const { stringMapFromArray } = require("./util");
 
-function stringMapFromArray(array) {
-  const result = {};
-  array.forEach(elem => {
-    result[elem] = elem;
-  });
-  return result;
-}
+const actionTypes = ["GAME_JOIN", "GAME_STATE", "GAME_LEAVE", "CHAT_MESSAGE"];
 
 module.exports = stringMapFromArray(actionTypes);

@@ -1,63 +1,33 @@
-import {
-  JOINED_GAME,
-  PLAYER_READY,
-  PLAYER_JOINED,
-  LEFT_GAME,
-  STARTED_GAME
-} from "../constants/actionTypes";
+import { GAME_JOIN, GAME_STATE, GAME_LEFT } from "../constants/actionTypes";
 
 const initialState = {
   id: null,
   user: null,
-  started: false,
-  players: []
+  state: null
 };
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    case JOINED_GAME: {
-      const { user, players, game } = action.payload;
+    case GAME_JOIN: {
+      const { user, game, state } = action.payload;
 
-      const { started, id } = game;
+      const { id } = game;
 
       return {
         ...state,
-        user,
-        players,
         id,
-        started
+        user,
+        state
       };
     }
-    case PLAYER_READY: {
-      const { player, value } = action.payload;
-
+    case GAME_STATE: {
       return {
         ...state,
-        players: state.players.map(element => {
-          if (element.id !== player.id) return element;
-
-          return {
-            ...element,
-            ready: value
-          };
-        })
+        state: action.payload
       };
     }
-    case PLAYER_JOINED: {
-      const player = action.payload;
-
-      return {
-        ...state,
-        players: [...state.players, player]
-      };
-    }
-    case LEFT_GAME:
+    case GAME_LEFT:
       return initialState;
-    case STARTED_GAME:
-      return {
-        ...state,
-        started: true
-      };
     default:
       return state;
   }

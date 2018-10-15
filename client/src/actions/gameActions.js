@@ -1,33 +1,49 @@
+import { GAME_JOIN, GAME_STATE, GAME_LEFT } from "../constants/actionTypes";
 import {
-  JOINED_GAME,
-  PLAYER_READY,
-  PLAYER_JOINED,
-  LEFT_GAME
-} from "../constants/actionTypes";
+  GAME_START,
+  PLAYER_JOIN,
+  PLAYER_LEAVE,
+  PLAYER_READY
+} from "../constants/serverActionTypes";
 
+// REDUX ACTIONS
 export function joinedGame(message) {
   return {
-    type: JOINED_GAME,
+    type: GAME_JOIN,
     payload: message
   };
 }
 
-export function userReady(message) {
+export function gameState(state) {
   return {
-    type: PLAYER_READY,
-    payload: message
+    type: GAME_STATE,
+    payload: state
   };
 }
 
 export function leftGame() {
   return {
-    type: LEFT_GAME
+    type: GAME_LEFT
   };
 }
 
-export function playerJoined(message) {
+// SERVER ACTIONS
+export function startGame() {
   return {
-    type: PLAYER_JOINED,
-    payload: message
+    type: GAME_START
+  };
+}
+
+export function leaveGame(player) {
+  return {
+    type: PLAYER_LEAVE,
+    payload: player
+  };
+}
+
+export function playerReady(value) {
+  return {
+    type: PLAYER_READY,
+    payload: value
   };
 }
